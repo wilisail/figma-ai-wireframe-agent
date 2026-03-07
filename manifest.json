@@ -1,0 +1,8 @@
+{
+  "name": "figma-ai-wireframe-agent",
+  "id": "figma-ai-wireframe-agent",
+  "api": "1.0.0",
+  "main": "code.js",
+  "ui": "ui.html",
+  "editorType": ["figma"]
+}

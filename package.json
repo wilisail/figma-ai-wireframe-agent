@@ -1,0 +1,10 @@
+{
+  "name": "figma-ai-wireframe-agent",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Minimal JavaScript Figma plugin that generates mobile wireframe screens using a simple planning agent.",
+  "scripts": {
+    "check": "node -e \"const fs=require('fs');['manifest.json','code.js','ui.html','planner.js','agent.js','styles.css','README.md'].forEach(f=>{if(!fs.existsSync(f)){throw new Error('Missing '+f)}}); console.log('Project structure looks valid.');\""
+  },
+  "license": "MIT"
+}

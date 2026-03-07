@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Figma AI Wireframe Agent</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="container">
+      <h1>AI Wireframe Agent</h1>
+      <p>Describe an app idea and generate mobile wireframe screens.</p>
+
+      <label for="promptInput">Prompt</label>
+      <input id="promptInput" type="text" placeholder="e.g. language learning app" />
+
+      <button id="generateButton">Generate UI</button>
+    </main>
+
+    <script>
+      // Sends user input to the Figma plugin runtime in code.js.
+      var promptInput = document.getElementById("promptInput");
+      var generateButton = document.getElementById("generateButton");
+
+      function sendPrompt() {
+        var prompt = promptInput.value.trim();
+        parent.postMessage(
+          {
+            pluginMessage: {
+              type: "generate-ui",
+              prompt: prompt
+            }
+          },
+          "*"
+        );
+      }
+
+      generateButton.addEventListener("click", sendPrompt);
+      promptInput.addEventListener("keydown", function (event) {
+        if (event.key === "Enter") {
+          sendPrompt();
+        }
+      });
+    </script>
+  </body>
+</html>

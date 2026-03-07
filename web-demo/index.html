@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Linguadrama AI Wireframe Demo</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="page">
+      <h1>Linguadrama AI Wireframe Demo</h1>
+      <section class="controls">
+        <label for="prompt">Lesson prompt</label>
+        <input
+          id="prompt"
+          type="text"
+          placeholder="e.g. Beginner Japanese drama at a ramen shop"
+        />
+        <button id="generateBtn" type="button">Generate Lesson Flow</button>
+      </section>
+
+      <section>
+        <h2>Generated Screens</h2>
+        <div id="frames" class="frames" aria-live="polite"></div>
+      </section>
+    </main>
+
+    <script src="app.js"></script>
+  </body>
+</html>

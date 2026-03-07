@@ -1,0 +1,102 @@
+:root {
+  font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color: #1f2937;
+  background: #f8fafc;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: linear-gradient(180deg, #eef2ff 0%, #f8fafc 45%);
+}
+
+.page {
+  max-width: 1300px;
+  margin: 0 auto;
+  padding: 2rem 1rem 3rem;
+}
+
+h1 {
+  margin: 0 0 1rem;
+}
+
+.controls {
+  display: grid;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+  background: #ffffff;
+  border-radius: 14px;
+  padding: 1rem;
+  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.08);
+}
+
+label {
+  font-weight: 600;
+}
+
+input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  font-size: 1rem;
+}
+
+button {
+  width: fit-content;
+  padding: 0.7rem 1rem;
+  border: none;
+  border-radius: 10px;
+  background: #4f46e5;
+  color: #ffffff;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #4338ca;
+}
+
+.frames {
+  display: flex;
+  gap: 1.5rem;
+  overflow-x: auto;
+  padding: 0.5rem 0 1rem;
+}
+
+.mobile-frame {
+  width: 390px;
+  min-width: 390px;
+  height: 844px;
+  border-radius: 36px;
+  background: #ffffff;
+  border: 1px solid #dbeafe;
+  box-shadow: 0 12px 25px rgba(37, 99, 235, 0.12);
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.mobile-frame h3 {
+  margin-top: 0;
+  margin-bottom: 0.75rem;
+  font-size: 1.4rem;
+}
+
+.mobile-frame p {
+  color: #334155;
+  line-height: 1.5;
+  flex-grow: 1;
+}
+
+.mobile-frame .primary-btn {
+  align-self: flex-start;
+  margin-top: 1rem;
+  background: #0ea5e9;
+  border-radius: 999px;
+  padding: 0.65rem 1.1rem;
+}

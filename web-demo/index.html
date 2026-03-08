@@ -1,30 +1,281 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Linguadrama AI Wireframe Demo</title>
-    <link rel="stylesheet" href="styles.css" />
-  </head>
-  <body>
-    <main class="page">
-      <h1>Linguadrama AI Wireframe Demo</h1>
-      <section class="controls">
-        <label for="prompt">Lesson prompt</label>
-        <input
-          id="prompt"
-          type="text"
-          placeholder="e.g. Beginner Japanese drama at a ramen shop"
-        />
-        <button id="generateBtn" type="button">Generate Lesson Flow</button>
-      </section>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Linguadrama</title>
 
-      <section>
-        <h2>Generated Screens</h2>
-        <div id="frames" class="frames" aria-live="polite"></div>
-      </section>
-    </main>
+<style>
 
-    <script src="app.js"></script>
-  </body>
+body{
+font-family:Arial;
+background:white;
+text-align:center;
+margin:0;
+}
+
+.page{
+display:none;
+padding:60px 20px;
+max-width:700px;
+margin:auto;
+}
+
+.active{
+display:block;
+}
+
+.logo{
+font-size:64px;
+font-weight:bold;
+margin-bottom:20px;
+}
+
+.logo span:nth-child(1){color:#4285F4;}
+.logo span:nth-child(2){color:#EA4335;}
+.logo span:nth-child(3){color:#FBBC05;}
+.logo span:nth-child(4){color:#34A853;}
+
+button{
+padding:12px 20px;
+font-size:16px;
+border:none;
+background:#4285F4;
+color:white;
+border-radius:6px;
+cursor:pointer;
+margin-top:20px;
+}
+
+.question{
+text-align:left;
+margin:20px 0;
+}
+
+.script{
+text-align:left;
+background:#f5f5f5;
+padding:20px;
+border-radius:10px;
+}
+
+</style>
+</head>
+
+<body>
+
+<!-- PAGE 1 -->
+
+<div id="page1" class="page active">
+
+<div class="logo">
+<span>Lingua</span><span>Drama</span>
+</div>
+
+<p>
+Welcome to Linguadrama where learning to speak is as fun as
+conversing like your favorite movie character.
+</p>
+
+<p>
+Take your English MCQ test first before we connect you
+to Linguadrama conversation groups in your city.
+</p>
+
+<button onclick="nextPage(2)">
+Take Test Now
+</button>
+
+</div>
+
+
+<!-- PAGE 2 TEST -->
+
+<div id="page2" class="page">
+
+<h2>English Test</h2>
+
+<form id="testForm">
+
+<div class="question">
+1. Choose correct sentence<br>
+<input type="radio" name="q1"> She go to school<br>
+<input type="radio" name="q1"> She goes to school
+</div>
+
+<div class="question">
+2. Synonym of HAPPY<br>
+<input type="radio" name="q2"> Sad<br>
+<input type="radio" name="q2"> Joyful
+</div>
+
+<div class="question">
+3. Past tense of RUN<br>
+<input type="radio" name="q3"> Ran<br>
+<input type="radio" name="q3"> Runned
+</div>
+
+<div class="question">
+4. Choose correct word<br>
+<input type="radio" name="q4"> Their house<br>
+<input type="radio" name="q4"> There house
+</div>
+
+<div class="question">
+5. Opposite of BIG<br>
+<input type="radio" name="q5"> Small<br>
+<input type="radio" name="q5"> Tall
+</div>
+
+<div class="question">
+6. Which is noun<br>
+<input type="radio" name="q6"> Run<br>
+<input type="radio" name="q6"> Apple
+</div>
+
+<div class="question">
+7. Correct sentence<br>
+<input type="radio" name="q7"> I have eaten<br>
+<input type="radio" name="q7"> I has eaten
+</div>
+
+<div class="question">
+8. Choose correct<br>
+<input type="radio" name="q8"> He don't know<br>
+<input type="radio" name="q8"> He doesn't know
+</div>
+
+<div class="question">
+9. Synonym FAST<br>
+<input type="radio" name="q9"> Quick<br>
+<input type="radio" name="q9"> Slow
+</div>
+
+<div class="question">
+10. Correct plural<br>
+<input type="radio" name="q10"> Childs<br>
+<input type="radio" name="q10"> Children
+</div>
+
+</form>
+
+<button onclick="finishTest()">
+Submit Test
+</button>
+
+</div>
+
+
+<!-- PAGE 3 -->
+
+<div id="page3" class="page">
+
+<h2>Your Grade: <span id="grade"></span></h2>
+
+<p>
+Hi, what conversation do you want to create today?
+</p>
+
+<button onclick="chooseStory('Island Treasure')">
+Island Treasure
+</button>
+
+<button onclick="chooseStory('Space Race')">
+Space Race
+</button>
+
+</div>
+
+
+<!-- PAGE 4 SCRIPT -->
+
+<div id="page4" class="page">
+
+<h2 id="storyTitle"></h2>
+
+<div class="script">
+
+<p>
+Character A: We finally found the treasure map!
+</p>
+
+<p>
+Character B: But the island is dangerous.
+</p>
+
+<p>
+Character A: Don't worry, adventure is part of the journey.
+</p>
+
+<p>
+Character B: Let's start exploring before sunset.
+</p>
+
+</div>
+
+<button onclick="nextPage(5)">
+Finish Conversation
+</button>
+
+</div>
+
+
+<!-- PAGE 5 -->
+
+<div id="page5" class="page">
+
+<h2>Congratulations!</h2>
+
+<p>
+You earned <span id="points"></span> points.
+</p>
+
+<p>
+Your Linguadrama journey begins today.
+</p>
+
+</div>
+
+
+<script>
+
+let score=0
+
+function nextPage(n){
+
+document.querySelectorAll(".page")
+.forEach(p=>p.classList.remove("active"))
+
+document.getElementById("page"+n)
+.classList.add("active")
+
+}
+
+function finishTest(){
+
+score=Math.floor(Math.random()*10)+1
+
+let grade="Beginner"
+
+if(score>7) grade="Advanced"
+else if(score>4) grade="Intermediate"
+
+document.getElementById("grade").innerText=grade
+
+nextPage(3)
+
+}
+
+function chooseStory(name){
+
+document.getElementById("storyTitle").innerText=name
+
+document.getElementById("points").innerText=score*10
+
+nextPage(4)
+
+}
+
+</script>
+
+</body>
 </html>

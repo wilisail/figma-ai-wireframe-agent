@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Wall-C</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <header id="topbar">
+    <div id="timer" class="timer">90:00</div>
+    <div id="uncat-count" class="uncat-count">0 uncategorized</div>
+  </header>
+
+  <form id="quick-add" autocomplete="off">
+    <input type="text" id="name-input" name="name" placeholder="Item name" required>
+    <input type="number" id="qty-input" name="qty" min="1" value="1" inputmode="numeric">
+    <button type="submit">Add</button>
+  </form>
+
+  <div id="toolbar">
+    <button id="summary-toggle" type="button">Summary</button>
+    <button id="reset-btn" type="button" class="danger">Reset</button>
+  </div>
+
+  <main id="list-view">
+    <div id="groups"></div>
+  </main>
+
+  <main id="summary-view" hidden>
+    <div id="summary-groups"></div>
+    <button id="copy-btn" type="button">Copy to clipboard</button>
+  </main>
+
+  <div id="sheet-overlay" hidden></div>
+  <div id="sheet" hidden>
+    <div class="sheet-handle"></div>
+    <h2 id="sheet-name"></h2>
+
+    <div class="field-group">
+      <label>Type</label>
+      <div class="btn-row" id="type-buttons">
+        <button type="button" class="opt-btn" data-type="utility">Utility</button>
+        <button type="button" class="opt-btn" data-type="memento">Memento</button>
+        <button type="button" class="opt-btn" data-type="rubbish">Rubbish</button>
+      </div>
+    </div>
+
+    <div class="field-group">
+      <label>Action</label>
+      <div class="btn-row" id="action-buttons">
+        <button type="button" class="opt-btn" data-action="display">Display</button>
+        <button type="button" class="opt-btn" data-action="safekeep">Safekeep</button>
+        <button type="button" class="opt-btn" data-action="discard">Discard</button>
+      </div>
+    </div>
+
+    <div class="field-group">
+      <label for="sheet-qty">Quantity</label>
+      <input type="number" id="sheet-qty" min="1">
+    </div>
+
+    <div class="field-group" id="location-group" hidden>
+      <label for="sheet-location">Location</label>
+      <input type="text" id="sheet-location" placeholder="Where kept">
+    </div>
+
+    <button type="button" id="delete-btn" class="danger full-width">Delete</button>
+    <button type="button" id="sheet-close" class="full-width">Close</button>
+  </div>
+
+<script src="app.js"></script>
+</body>
+</html>

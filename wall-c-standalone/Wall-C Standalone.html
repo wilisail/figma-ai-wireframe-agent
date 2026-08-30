@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WALL-C</title>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f1e8; }
+  a { color: #1a73e8; text-decoration: none; }
+  a:hover { color: #1557b0; }
+
+  .opt-btn {
+    padding: 8px 12px;
+    background: #f0e8d8;
+    border: 1px solid #e0d5c7;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 500;
+    color: #2c2c2c;
+    font-family: inherit;
+  }
+  .opt-btn.selected { background: #ffd89b; }
+
+  .tally-chip {
+    background: #fff;
+    border: 1px solid #e0d5c7;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #2c2c2c;
+  }
+  .tally-chip.total { background: #ffd89b; border-color: #ffd89b; }
+
+  .item-row {
+    padding: 12px;
+    border-bottom: 1px solid #ffd89b;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+  }
+  .item-row:last-child { border-bottom: none; }
+
+  .delete-btn {
+    padding: 4px 8px;
+    background: #ff6b6b;
+    color: #fff;
+    border: none;
+    border-radius: 3px;
+    font-size: 11px;
+    cursor: pointer;
+    flex-shrink: 0;
+    font-family: inherit;
+  }
+
+  .field-label { margin: 12px 0 8px; font-size: 12px; font-weight: 600; color: #2c2c2c; }
+  .field-label:first-child { margin-top: 0; }
+
+  #timerDisplay { font-variant-numeric: tabular-nums; }
+  #timerDisplay.expired { color: #d81f1f; }
+  #timerStatus.expired { background: #d81f1f; animation: pulse 1s ease-in-out infinite; }
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.55; } }
+
+  #sheetOverlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.4);
+    z-index: 20;
+  }
+  #sheet {
+    display: none;
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: #f5f1e8;
+    border-top: 2px solid #2c2c2c;
+    border-top-left-radius: 14px;
+    border-top-right-radius: 14px;
+    padding: 16px;
+    z-index: 21;
+    max-height: 80vh;
+    overflow-y: auto;
+  }
+
+  .summary-group { margin-bottom: 16px; }
+  .summary-group h4 { margin: 0 0 8px; font-size: 12px; font-weight: 600; color: #2c2c2c; }
+  .summary-row { display: flex; justify-content: space-between; font-size: 12px; color: #2c2c2c; padding: 4px 0; border-bottom: 1px dashed #e0d5c7; }
+</style>
+</head>
+<body>
+
+<div style="display: flex; flex-direction: column; min-height: 100vh; background: #f5f1e8; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;">
+  <!-- Main app container -->
+  <div style="flex: 1; display: flex; flex-direction: column;">
+    <!-- Top section: Header + Timer -->
+    <div style="background: linear-gradient(135deg, #ffd89b 0%, #ffe5b4 100%); padding: 24px 16px 16px; border-bottom: 1px solid rgba(0,0,0,0.08);">
+      <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+        <div style="width: 44px; height: 40px; background: #4a7fd4; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; position: relative; overflow: hidden;">
+          <div style="position: absolute; left: -6px; width: 22px; height: 22px; background: #f0b429; border-radius: 50%; clip-path: polygon(50% 0, 100% 0, 100% 100%, 50% 100%);"></div>
+          <div style="display: flex; gap: 3px; z-index: 1;">
+            <div style="width: 0; height: 0; border-left: 6px solid transparent; border-right: 6px solid transparent; border-bottom: 10px solid #7ed321;"></div>
+            <div style="width: 0; height: 0; border-left: 6px solid transparent; border-right: 6px solid transparent; border-bottom: 10px solid #7ed321;"></div>
+          </div>
+        </div>
+        <div>
+          <h1 style="margin: 0; font-size: 20px; font-weight: 600; color: #2c2c2c;">WALL-C</h1>
+          <p style="margin: 4px 0 0; font-size: 12px; color: #5a5a5a;">Stateless Digital Version</p>
+        </div>
+      </div>
+      <div style="background: #fff; padding: 12px 16px; border-radius: 8px; display: flex; align-items: center; justify-content: space-between;">
+        <div>
+          <p style="margin: 0; font-size: 11px; color: #5a5a5a;">Remaining Minutes left of 90</p>
+          <p id="timerDisplay" style="margin: 4px 0 0; font-size: 13px; font-weight: 600; color: #2c2c2c;">90:00</p>
+        </div>
+        <div id="timerStatus" style="background: #ccc; color: white; padding: 12px 16px; border-radius: 4px; font-weight: 600; font-size: 14px; min-width: 50px; text-align: center;">OFF</div>
+      </div>
+    </div>
+
+    <!-- Scrollable content area -->
+    <div style="flex: 1; padding: 16px;">
+
+      <!-- Instructions (collapsible) -->
+      <div style="background: #fff8e1; border: 1px solid #ffd89b; border-radius: 6px; padding: 12px; margin-bottom: 16px;">
+        <button type="button" id="toggleInstructionsBtn" style="background: none; border: none; padding: 0; cursor: pointer; width: 100%; text-align: left; font-family: inherit;">
+          <p style="margin: 0; font-size: 12px; font-weight: 600; color: #2c2c2c;"><span id="instrIcon">&#9654;</span> How I can help you</p>
+        </button>
+        <ol id="instructionsList" style="display: none; margin: 8px 0 0; padding-left: 20px; font-size: 11px; color: #2c2c2c; line-height: 1.5;">
+          <li>State by text or photo of areas needed to be cleared. You have 90 minutes.</li>
+          <li>For physical goods, I'll categorize as Utility, Memento, Rubbish or rearrange as Safekeep, Display.</li>
+          <li>For digital goods, I'll categorize as Database, Knowledge, Fun or rearrange as Work, Ideate, Entertain.</li>
+        </ol>
+      </div>
+
+      <!-- Input Section -->
+      <div style="background: #fff; border: 1px solid #e0d5c7; border-radius: 8px; padding: 16px; margin-bottom: 16px;">
+        <p class="field-label">Write the content of the goods you are unloading:</p>
+        <textarea id="goodsInput" placeholder="Enter goods name, description, or type..." style="width: 100%; padding: 12px; border: 1px solid #e0d5c7; border-radius: 4px; font-family: inherit; font-size: 14px; resize: vertical; min-height: 80px; margin-bottom: 12px;"></textarea>
+
+        <p class="field-label">Type of Goods:</p>
+        <div id="goodsTypeButtons" style="display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap;">
+          <button type="button" class="opt-btn selected" data-goods-type="Physical">Physical</button>
+          <button type="button" class="opt-btn" data-goods-type="Digital">Digital</button>
+        </div>
+
+        <p class="field-label">Number of Goods:</p>
+        <input id="quantityInput" type="number" min="1" value="1" style="width: 100%; padding: 10px; border: 1px solid #e0d5c7; border-radius: 4px; font-size: 13px; margin-bottom: 12px;">
+
+        <p class="field-label">Category:</p>
+        <select id="categorySelect" style="width: 100%; padding: 10px; border: 1px solid #e0d5c7; border-radius: 4px; font-size: 13px; background: #fff; cursor: pointer; margin-bottom: 12px;"></select>
+
+        <p class="field-label">Action:</p>
+        <div id="actionButtons" style="display: flex; gap: 8px; flex-wrap: wrap;">
+          <button type="button" class="opt-btn selected" data-action="Safekeep">Safekeep</button>
+          <button type="button" class="opt-btn" data-action="Display">Display</button>
+          <button type="button" class="opt-btn" data-action="Discard">Discard</button>
+        </div>
+
+        <div id="locationGroup" style="display: none;">
+          <p class="field-label">Location (where kept):</p>
+          <input id="locationInput" type="text" placeholder="e.g. Storage box" style="width: 100%; padding: 10px; border: 1px solid #e0d5c7; border-radius: 4px; font-size: 13px;">
+        </div>
+      </div>
+
+      <!-- Submit Button -->
+      <button type="button" id="submitBtn" style="width: 100%; padding: 14px; background: #ffd89b; border: 2px solid #2c2c2c; border-radius: 4px; font-size: 14px; font-weight: 600; color: #2c2c2c; cursor: pointer; margin-bottom: 16px;">SUBMIT</button>
+
+      <!-- Main screen (hidden until first submit) -->
+      <div id="mainScreen" style="display: none;">
+
+        <!-- Tally -->
+        <div id="tally" style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px;">
+          <span class="tally-chip total">Total: <span id="tallyTotal">0</span></span>
+          <span class="tally-chip">Display: <span id="tallyDisplay">0</span></span>
+          <span class="tally-chip">Safekeep: <span id="tallySafekeep">0</span></span>
+          <span class="tally-chip">Discard: <span id="tallyDiscard">0</span></span>
+        </div>
+
+        <div style="display: flex; gap: 8px; margin-bottom: 16px;">
+          <button type="button" id="summaryToggleBtn" style="flex: 1; padding: 10px; background: #fff; border: 1px solid #e0d5c7; border-radius: 4px; font-size: 12px; font-weight: 600; color: #2c2c2c; cursor: pointer; font-family: inherit;">Summary</button>
+          <button type="button" id="resetBtn" style="flex: 1; padding: 10px; background: #fff; border: 1px solid #ff6b6b; border-radius: 4px; font-size: 12px; font-weight: 600; color: #ff6b6b; cursor: pointer; font-family: inherit;">Reset</button>
+        </div>
+
+        <!-- Submitted Items List -->
+        <div id="listView">
+          <h3 style="margin: 0 0 12px; font-size: 12px; font-weight: 600; color: #2c2c2c;">List so far we record: <span id="itemCount" style="background: #ffd89b; padding: 2px 6px; border-radius: 3px; margin-left: 8px;">0</span></h3>
+          <div id="itemsWrap" style="background: #fff9e6; border: 1px solid #ffd89b; border-radius: 6px; padding: 0; overflow: hidden; display: none;">
+            <div id="itemsList"></div>
+          </div>
+          <p id="emptyNote" style="color: #999; font-size: 12px; text-align: center; padding: 20px;">No items submitted yet</p>
+        </div>
+
+        <!-- Summary view -->
+        <div id="summaryView" style="display: none;">
+          <div id="summaryGroups"></div>
+          <button type="button" id="copyBtn" style="width: 100%; padding: 12px; margin-top: 4px; background: #ffd89b; border: 2px solid #2c2c2c; border-radius: 4px; font-size: 13px; font-weight: 600; color: #2c2c2c; cursor: pointer; font-family: inherit;">Copy to clipboard</button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Detail sheet -->
+<div id="sheetOverlay"></div>
+<div id="sheet">
+  <h3 id="sheetItemName" style="margin: 0 0 12px; font-size: 14px; font-weight: 600; color: #2c2c2c;"></h3>
+
+  <p class="field-label" style="margin-top:0;">Type:</p>
+  <div id="sheetTypeButtons" style="display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap;">
+    <button type="button" class="opt-btn" data-type="Utility">Utility</button>
+    <button type="button" class="opt-btn" data-type="Memento">Memento</button>
+    <button type="button" class="opt-btn" data-type="Rubbish">Rubbish</button>
+  </div>
+
+  <p class="field-label">Action:</p>
+  <div id="sheetActionButtons" style="display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap;">
+    <button type="button" class="opt-btn" data-action="Display">Display</button>
+    <button type="button" class="opt-btn" data-action="Safekeep">Safekeep</button>
+    <button type="button" class="opt-btn" data-action="Discard">Discard</button>
+  </div>
+
+  <p class="field-label">Quantity:</p>
+  <input id="sheetQty" type="number" min="1" style="width: 100%; padding: 10px; border: 1px solid #e0d5c7; border-radius: 4px; font-size: 13px; margin-bottom: 12px;">
+
+  <div id="sheetLocationGroup" style="display: none;">
+    <p class="field-label">Location:</p>
+    <input id="sheetLocation" type="text" placeholder="e.g. Storage box" style="width: 100%; padding: 10px; border: 1px solid #e0d5c7; border-radius: 4px; font-size: 13px; margin-bottom: 12px;">
+  </div>
+
+  <button type="button" id="sheetDeleteBtn" style="width: 100%; padding: 12px; margin-top: 4px; background: #fff; border: 2px solid #ff6b6b; border-radius: 4px; font-size: 13px; font-weight: 600; color: #ff6b6b; cursor: pointer; font-family: inherit;">Delete</button>
+  <button type="button" id="sheetCloseBtn" style="width: 100%; padding: 12px; margin-top: 8px; background: #fff; border: 1px solid #e0d5c7; border-radius: 4px; font-size: 13px; font-weight: 600; color: #2c2c2c; cursor: pointer; font-family: inherit;">Close</button>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  var ITEMS_KEY = "wallc.items";
+  var TIMER_KEY = "wallc.startedAt";
+  var DURATION_MS = 90 * 60 * 1000;
+
+  var CATEGORY_OPTIONS = {
+    Physical: ["Memento", "Utility", "Rubbish"],
+    Digital: ["Knowledge", "Fun", "Database"]
+  };
+
+  var items = [];
+  var startedAt = null;
+  var vibratedAtZero = false;
+  var showInstructions = false;
+  var summaryMode = false;
+  var goodsType = "Physical";
+  var addAction = "Safekeep";
+  var activeItemId = null;
+
+  var el = {
+    timerDisplay: document.getElementById("timerDisplay"),
+    timerStatus: document.getElementById("timerStatus"),
+    toggleInstructionsBtn: document.getElementById("toggleInstructionsBtn"),
+    instrIcon: document.getElementById("instrIcon"),
+    instructionsList: document.getElementById("instructionsList"),
+    goodsInput: document.getElementById("goodsInput"),
+    goodsTypeButtons: document.getElementById("goodsTypeButtons"),
+    quantityInput: document.getElementById("quantityInput"),
+    categorySelect: document.getElementById("categorySelect"),
+    actionButtons: document.getElementById("actionButtons"),
+    locationGroup: document.getElementById("locationGroup"),
+    locationInput: document.getElementById("locationInput"),
+    submitBtn: document.getElementById("submitBtn"),
+    mainScreen: document.getElementById("mainScreen"),
+    tallyTotal: document.getElementById("tallyTotal"),
+    tallyDisplay: document.getElementById("tallyDisplay"),
+    tallySafekeep: document.getElementById("tallySafekeep"),
+    tallyDiscard: document.getElementById("tallyDiscard"),
+    summaryToggleBtn: document.getElementById("summaryToggleBtn"),
+    resetBtn: document.getElementById("resetBtn"),
+    listView: document.getElementById("listView"),
+    itemCount: document.getElementById("itemCount"),
+    itemsWrap: document.getElementById("itemsWrap"),
+    itemsList: document.getElementById("itemsList"),
+    emptyNote: document.getElementById("emptyNote"),
+    summaryView: document.getElementById("summaryView"),
+    summaryGroups: document.getElementById("summaryGroups"),
+    copyBtn: document.getElementById("copyBtn"),
+    sheetOverlay: document.getElementById("sheetOverlay"),
+    sheet: document.getElementById("sheet"),
+    sheetItemName: document.getElementById("sheetItemName"),
+    sheetTypeButtons: document.getElementById("sheetTypeButtons"),
+    sheetActionButtons: document.getElementById("sheetActionButtons"),
+    sheetQty: document.getElementById("sheetQty"),
+    sheetLocationGroup: document.getElementById("sheetLocationGroup"),
+    sheetLocation: document.getElementById("sheetLocation"),
+    sheetDeleteBtn: document.getElementById("sheetDeleteBtn"),
+    sheetCloseBtn: document.getElementById("sheetCloseBtn")
+  };
+
+  function uid() {
+    return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+  }
+
+  // ---- Persistence ----
+
+  function loadItems() {
+    try {
+      var raw = localStorage.getItem(ITEMS_KEY);
+      return raw ? JSON.parse(raw) : [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  function saveItems() {
+    localStorage.setItem(ITEMS_KEY, JSON.stringify(items));
+  }
+
+  function loadStartedAt() {
+    var t = localStorage.getItem(TIMER_KEY);
+    return t ? parseInt(t, 10) : null;
+  }
+
+  function saveStartedAt() {
+    if (startedAt === null) {
+      localStorage.removeItem(TIMER_KEY);
+    } else {
+      localStorage.setItem(TIMER_KEY, String(startedAt));
+    }
+  }
+
+  // ---- Timer ----
+
+  function formatTime(ms) {
+    var sign = ms < 0 ? "-" : "";
+    var abs = Math.abs(ms);
+    var totalSeconds = Math.floor(abs / 1000);
+    var mm = Math.floor(totalSeconds / 60);
+    var ss = totalSeconds % 60;
+    return sign + String(mm).padStart(2, "0") + ":" + String(ss).padStart(2, "0");
+  }
+
+  function tickTimer() {
+    if (startedAt === null) {
+      el.timerDisplay.textContent = "90:00";
+      el.timerDisplay.style.color = "#2c2c2c";
+      el.timerStatus.textContent = "OFF";
+      el.timerStatus.style.background = "#ccc";
+      return;
+    }
+    var remaining = DURATION_MS - (Date.now() - startedAt);
+    el.timerDisplay.textContent = formatTime(remaining);
+    if (remaining <= 0) {
+      el.timerDisplay.style.color = "#d81f1f";
+      el.timerStatus.textContent = "TIME UP";
+      el.timerStatus.classList.add("expired");
+      if (!vibratedAtZero) {
+        vibratedAtZero = true;
+        if (navigator.vibrate) navigator.vibrate(500);
+      }
+    } else {
+      el.timerDisplay.style.color = "#2c2c2c";
+      el.timerStatus.textContent = "ON";
+      el.timerStatus.style.background = "#e05a00";
+      el.timerStatus.classList.remove("expired");
+    }
+  }
+
+  function startSession() {
+    if (startedAt !== null) return;
+    startedAt = Date.now();
+    saveStartedAt();
+    el.mainScreen.style.display = "";
+  }
+
+  // ---- Category options ----
+
+  function renderCategoryOptions() {
+    var opts = CATEGORY_OPTIONS[goodsType];
+    el.categorySelect.innerHTML = "";
+    opts.forEach(function (cat) {
+      var o = document.createElement("option");
+      o.value = cat;
+      o.textContent = cat;
+      el.categorySelect.appendChild(o);
+    });
+  }
+
+  // ---- Tally ----
+
+  function computeTally() {
+    var t = { total: items.length, display: 0, safekeep: 0, discard: 0 };
+    items.forEach(function (it) {
+      if (it.action === "display") t.display++;
+      else if (it.action === "safekeep") t.safekeep++;
+      else if (it.action === "discard") t.discard++;
+    });
+    return t;
+  }
+
+  function renderTally() {
+    var t = computeTally();
+    el.tallyTotal.textContent = t.total;
+    el.tallyDisplay.textContent = t.display;
+    el.tallySafekeep.textContent = t.safekeep;
+    el.tallyDiscard.textContent = t.discard;
+  }
+
+  // ---- List rendering ----
+
+  function findItem(id) {
+    for (var i = 0; i < items.length; i++) {
+      if (items[i].id === id) return items[i];
+    }
+    return null;
+  }
+
+  function itemLine(it, index) {
+    var parts = [
+      "<strong>" + (index + 1) + "</strong>",
+      "<strong>" + escapeHtml(it.name) + "</strong>",
+      "<strong>" + escapeHtml(it.type || "-") + "</strong>",
+      escapeHtml(it.action || "-") + (it.action === "safekeep" && it.location ? " &mdash; " + escapeHtml(it.location) : ""),
+      "Qty: <strong>" + it.qty + "</strong>"
+    ];
+    return parts.join(" | ");
+  }
+
+  function escapeHtml(s) {
+    var d = document.createElement("div");
+    d.textContent = s == null ? "" : String(s);
+    return d.innerHTML;
+  }
+
+  function renderList() {
+    el.itemCount.textContent = items.length;
+    el.itemsList.innerHTML = "";
+    if (items.length === 0) {
+      el.itemsWrap.style.display = "none";
+      el.emptyNote.style.display = "";
+      return;
+    }
+    el.itemsWrap.style.display = "";
+    el.emptyNote.style.display = "none";
+    items.forEach(function (it, index) {
+      var row = document.createElement("div");
+      row.className = "item-row";
+      row.dataset.id = it.id;
+
+      var text = document.createElement("div");
+      text.style.flex = "1";
+      text.style.fontSize = "12px";
+      text.style.color = "#2c2c2c";
+      text.style.lineHeight = "1.4";
+      text.innerHTML = itemLine(it, index);
+      row.appendChild(text);
+
+      var del = document.createElement("button");
+      del.type = "button";
+      del.className = "delete-btn";
+      del.textContent = "✕";
+      del.dataset.id = it.id;
+      row.appendChild(del);
+
+      el.itemsList.appendChild(row);
+    });
+  }
+
+  function renderSummary() {
+    el.summaryGroups.innerHTML = "";
+
+    function section(title, list, showLocation) {
+      var wrap = document.createElement("div");
+      wrap.className = "summary-group";
+      var totalQty = list.reduce(function (sum, it) { return sum + it.qty; }, 0);
+      var h = document.createElement("h4");
+      h.textContent = title + " (" + totalQty + ")";
+      wrap.appendChild(h);
+      if (list.length === 0) {
+        var empty = document.createElement("p");
+        empty.style.cssText = "margin:0;color:#999;font-size:12px;";
+        empty.textContent = "None";
+        wrap.appendChild(empty);
+      } else {
+        list.forEach(function (it) {
+          var row = document.createElement("div");
+          row.className = "summary-row";
+          var left = document.createElement("span");
+          left.textContent = it.name + (showLocation && it.location ? " — " + it.location : "");
+          var right = document.createElement("span");
+          right.textContent = "x" + it.qty;
+          row.appendChild(left);
+          row.appendChild(right);
+          wrap.appendChild(row);
+        });
+      }
+      el.summaryGroups.appendChild(wrap);
+    }
+
+    var display = items.filter(function (it) { return it.action === "display"; });
+    var safekeep = items.filter(function (it) { return it.action === "safekeep"; })
+      .slice()
+      .sort(function (a, b) { return (a.location || "").localeCompare(b.location || ""); });
+    var discard = items.filter(function (it) { return it.action === "discard"; });
+
+    section("Display", display, false);
+    section("Safekeep", safekeep, true);
+    section("Discard", discard, false);
+  }
+
+  function render() {
+    renderTally();
+    if (summaryMode) {
+      renderSummary();
+    } else {
+      renderList();
+    }
+  }
+
+  // ---- Instructions toggle ----
+
+  el.toggleInstructionsBtn.addEventListener("click", function () {
+    showInstructions = !showInstructions;
+    el.instructionsList.style.display = showInstructions ? "" : "none";
+    el.instrIcon.textContent = showInstructions ? "▼" : "▶";
+  });
+
+  // ---- Goods type / category ----
+
+  el.goodsTypeButtons.addEventListener("click", function (e) {
+    var btn = e.target.closest(".opt-btn");
+    if (!btn) return;
+    goodsType = btn.dataset.goodsType;
+    Array.prototype.forEach.call(el.goodsTypeButtons.children, function (b) {
+      b.classList.toggle("selected", b === btn);
+    });
+    renderCategoryOptions();
+  });
+
+  // ---- Add-form action buttons ----
+
+  function locationVisible(action) {
+    return action === "Safekeep";
+  }
+
+  el.actionButtons.addEventListener("click", function (e) {
+    var btn = e.target.closest(".opt-btn");
+    if (!btn) return;
+    addAction = btn.dataset.action;
+    Array.prototype.forEach.call(el.actionButtons.children, function (b) {
+      b.classList.toggle("selected", b === btn);
+    });
+    el.locationGroup.style.display = locationVisible(addAction) ? "" : "none";
+  });
+
+  el.categorySelect.addEventListener("change", function () {
+    if (el.categorySelect.value === "Rubbish") {
+      addAction = "Discard";
+      el.locationInput.value = "";
+      el.locationGroup.style.display = "none";
+      Array.prototype.forEach.call(el.actionButtons.children, function (b) {
+        b.classList.toggle("selected", b.dataset.action === "Discard");
+      });
+    }
+  });
+
+  // ---- Submit / add flow ----
+
+  el.submitBtn.addEventListener("click", function () {
+    var name = el.goodsInput.value.trim();
+    if (!name) return;
+
+    var qty = parseInt(el.quantityInput.value, 10);
+    if (isNaN(qty) || qty < 1) qty = 1;
+
+    var category = el.categorySelect.value || CATEGORY_OPTIONS[goodsType][0];
+    var type = category.toLowerCase();
+    var action = addAction.toLowerCase();
+    var location = action === "safekeep" ? el.locationInput.value.trim() : "";
+
+    if (type === "rubbish") {
+      action = "discard";
+      location = "";
+    }
+
+    startSession();
+
+    items.push({
+      id: uid(),
+      name: name,
+      qty: qty,
+      type: type,
+      action: action,
+      location: location,
+      createdAt: Date.now()
+    });
+    saveItems();
+    render();
+
+    el.goodsInput.value = "";
+    el.quantityInput.value = "1";
+    el.goodsInput.focus();
+  });
+
+  // ---- Row tap -> sheet ----
+
+  el.itemsList.addEventListener("click", function (e) {
+    var del = e.target.closest(".delete-btn");
+    if (del) {
+      items = items.filter(function (it) { return it.id !== del.dataset.id; });
+      saveItems();
+      render();
+      return;
+    }
+    var row = e.target.closest(".item-row");
+    if (row) openSheet(row.dataset.id);
+  });
+
+  function updateSheetSelection(it) {
+    Array.prototype.forEach.call(el.sheetTypeButtons.children, function (b) {
+      b.classList.toggle("selected", b.dataset.type.toLowerCase() === it.type);
+    });
+    Array.prototype.forEach.call(el.sheetActionButtons.children, function (b) {
+      b.classList.toggle("selected", b.dataset.action.toLowerCase() === it.action);
+    });
+  }
+
+  function openSheet(id) {
+    var it = findItem(id);
+    if (!it) return;
+    activeItemId = id;
+    el.sheetItemName.textContent = it.name;
+    el.sheetQty.value = it.qty;
+    el.sheetLocation.value = it.location || "";
+    el.sheetLocationGroup.style.display = it.action === "safekeep" ? "" : "none";
+    updateSheetSelection(it);
+    el.sheetOverlay.style.display = "block";
+    el.sheet.style.display = "block";
+  }
+
+  function closeSheet() {
+    el.sheetOverlay.style.display = "none";
+    el.sheet.style.display = "none";
+    activeItemId = null;
+  }
+
+  function mutateActiveItem(fn) {
+    var it = findItem(activeItemId);
+    if (!it) return;
+    fn(it);
+    saveItems();
+    render();
+  }
+
+  el.sheetTypeButtons.addEventListener("click", function (e) {
+    var btn = e.target.closest(".opt-btn");
+    if (!btn) return;
+    var type = btn.dataset.type.toLowerCase();
+    mutateActiveItem(function (it) {
+      it.type = type;
+      if (type === "rubbish") {
+        it.action = "discard";
+        it.location = "";
+      }
+    });
+    var it = findItem(activeItemId);
+    updateSheetSelection(it);
+    el.sheetLocationGroup.style.display = it.action === "safekeep" ? "" : "none";
+    el.sheetLocation.value = it.location || "";
+  });
+
+  el.sheetActionButtons.addEventListener("click", function (e) {
+    var btn = e.target.closest(".opt-btn");
+    if (!btn) return;
+    var action = btn.dataset.action.toLowerCase();
+    mutateActiveItem(function (it) {
+      it.action = action;
+      if (action !== "safekeep") it.location = "";
+    });
+    var it = findItem(activeItemId);
+    updateSheetSelection(it);
+    el.sheetLocationGroup.style.display = it.action === "safekeep" ? "" : "none";
+    el.sheetLocation.value = it.location || "";
+  });
+
+  el.sheetQty.addEventListener("input", function () {
+    var val = parseInt(el.sheetQty.value, 10);
+    if (isNaN(val) || val < 1) return;
+    mutateActiveItem(function (it) { it.qty = val; });
+  });
+
+  el.sheetLocation.addEventListener("input", function () {
+    var val = el.sheetLocation.value;
+    mutateActiveItem(function (it) { it.location = val; });
+  });
+
+  el.sheetDeleteBtn.addEventListener("click", function () {
+    items = items.filter(function (it) { return it.id !== activeItemId; });
+    saveItems();
+    render();
+    closeSheet();
+  });
+
+  el.sheetCloseBtn.addEventListener("click", closeSheet);
+  el.sheetOverlay.addEventListener("click", closeSheet);
+
+  // ---- Summary toggle / copy ----
+
+  el.summaryToggleBtn.addEventListener("click", function () {
+    summaryMode = !summaryMode;
+    el.listView.style.display = summaryMode ? "none" : "";
+    el.summaryView.style.display = summaryMode ? "" : "none";
+    el.summaryToggleBtn.textContent = summaryMode ? "List" : "Summary";
+    render();
+  });
+
+  function buildSummaryText() {
+    function section(title, list, showLocation) {
+      var lines = [title + ":"];
+      if (list.length === 0) {
+        lines.push("  (none)");
+      } else {
+        list.forEach(function (it) {
+          var line = "  " + it.name + " x" + it.qty;
+          if (showLocation && it.location) line += " — " + it.location;
+          lines.push(line);
+        });
+      }
+      return lines.join("\n");
+    }
+
+    var display = items.filter(function (it) { return it.action === "display"; });
+    var safekeep = items.filter(function (it) { return it.action === "safekeep"; })
+      .slice()
+      .sort(function (a, b) { return (a.location || "").localeCompare(b.location || ""); });
+    var discard = items.filter(function (it) { return it.action === "discard"; });
+
+    return [
+      section("Display", display, false),
+      section("Safekeep", safekeep, true),
+      section("Discard", discard, false)
+    ].join("\n\n");
+  }
+
+  function fallbackCopy(text) {
+    var ta = document.createElement("textarea");
+    ta.value = text;
+    ta.style.position = "fixed";
+    ta.style.left = "-9999px";
+    document.body.appendChild(ta);
+    ta.select();
+    try { document.execCommand("copy"); } catch (e) {}
+    document.body.removeChild(ta);
+  }
+
+  el.copyBtn.addEventListener("click", function () {
+    var text = buildSummaryText();
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).catch(function () { fallbackCopy(text); });
+    } else {
+      fallbackCopy(text);
+    }
+  });
+
+  // ---- Reset ----
+
+  el.resetBtn.addEventListener("click", function () {
+    if (!confirm("Clear all items and reset the timer?")) return;
+    items = [];
+    startedAt = null;
+    vibratedAtZero = false;
+    saveItems();
+    saveStartedAt();
+    summaryMode = false;
+    el.listView.style.display = "";
+    el.summaryView.style.display = "none";
+    el.summaryToggleBtn.textContent = "Summary";
+    el.mainScreen.style.display = "none";
+    render();
+  });
+
+  // ---- Init ----
+
+  items = loadItems();
+  startedAt = loadStartedAt();
+  renderCategoryOptions();
+  el.locationGroup.style.display = locationVisible(addAction) ? "" : "none";
+  if (startedAt !== null) {
+    el.mainScreen.style.display = "";
+  }
+  render();
+  tickTimer();
+  setInterval(tickTimer, 1000);
+})();
+</script>
+</body>
+</html>
